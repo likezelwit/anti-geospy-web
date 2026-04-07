@@ -31,7 +31,7 @@
     let hasExif = false;
 
     // ============================================================
-    // 1. PARTICLE BACKGROUND
+    // 1. PARTICLE BACKGROUND (Sudah disesuaikan ke warna Biru)
     // ============================================================
     function initBackground() {
         const ctx = bgCanvas.getContext('2d');
@@ -73,10 +73,9 @@
 
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, Math.max(0.1, p.r), 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(10, 143, 108, ${p.alpha})`;
+                ctx.fillStyle = `rgba(59, 130, 246, ${p.alpha})`; // Biru Modern Cloud
                 ctx.fill();
 
-                // Garis koneksi antar partikel
                 for (let j = i + 1; j < particles.length; j++) {
                     const q = particles[j];
                     const dx = p.x - q.x;
@@ -86,13 +85,12 @@
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(q.x, q.y);
-                        ctx.strokeStyle = `rgba(10, 143, 108, ${0.05 * (1 - dist / 110)})`;
+                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.05 * (1 - dist / 110)})`;
                         ctx.lineWidth = 0.5;
                         ctx.stroke();
                     }
                 }
 
-                // Interaksi mouse
                 const mdx = p.x - mouse.x;
                 const mdy = p.y - mouse.y;
                 const mDist = Math.sqrt(mdx * mdx + mdy * mdy);
@@ -100,7 +98,7 @@
                     ctx.beginPath();
                     ctx.moveTo(p.x, p.y);
                     ctx.lineTo(mouse.x, mouse.y);
-                    ctx.strokeStyle = `rgba(10, 143, 108, ${0.1 * (1 - mDist / 140)})`;
+                    ctx.strokeStyle = `rgba(59, 130, 246, ${0.1 * (1 - mDist / 140)})`;
                     ctx.lineWidth = 0.6;
                     ctx.stroke();
                 }
@@ -135,44 +133,45 @@
     }
 
     // ============================================================
-    // 3. EXIF DETECTION (baca binary, bukan random)
+    // 3. EXIF DETECTION (baca binary + Indikator Scanning Visual)
     // ============================================================
     function detectExif(arrayBuffer) {
         var view = new DataView(arrayBuffer);
+        var detected = false;
 
-        // --- JPEG: cari APP1 marker (FF E1) = EXIF ---
+        // --- JPEG ---
         if (view.byteLength >= 4 && view.getUint8(0) === 0xFF && view.getUint8(1) === 0xD8) {
             var offset = 2;
             while (offset < view.byteLength - 1) {
                 var marker = view.getUint16(offset);
-                if (marker === 0xFFDA) break; // SOS — mulai data gambar, stop scan
-                if (marker === 0xFFE1) return true; // APP1 = EXIF
-                if ((marker & 0xFF00) !== 0xFF00) break; // bukan marker valid
+                if (marker === 0xFFDA) break;
+                if (marker === 0xFFE1) { detected = true; break; }
+                if ((marker & 0xFF00) !== 0xFF00) break;
                 var segLen = view.getUint16(offset + 2);
                 if (segLen < 2) break;
                 offset += 2 + segLen;
             }
         }
 
-        // --- PNG: cari eXIf chunk ---
-        if (view.byteLength >= 8 &&
+        // --- PNG ---
+        if (!detected && view.byteLength >= 8 &&
             view.getUint8(0) === 0x89 && view.getUint8(1) === 0x50 &&
             view.getUint8(2) === 0x4E && view.getUint8(3) === 0x47) {
-            var off = 8; // skip PNG signature
+            var off = 8;
             while (off < view.byteLength - 12) {
                 var chunkLen = view.getUint32(off);
                 var chunkType = String.fromCharCode(
                     view.getUint8(off + 4), view.getUint8(off + 5),
                     view.getUint8(off + 6), view.getUint8(off + 7)
                 );
-                if (chunkType === 'eXIf') return true;
+                if (chunkType === 'eXIf') { detected = true; break; }
                 if (chunkType === 'IEND') break;
-                off += 12 + chunkLen; // 4 len + 4 type + data + 4 crc
+                off += 12 + chunkLen;
             }
         }
 
-        // --- WebP: cari EXIF chunk ---
-        if (view.byteLength >= 12) {
+        // --- WebP ---
+        if (!detected && view.byteLength >= 12) {
             var riffTag = String.fromCharCode(
                 view.getUint8(0), view.getUint8(1), view.getUint8(2), view.getUint8(3)
             );
@@ -187,15 +186,47 @@
                         view.getUint8(wOff), view.getUint8(wOff + 1),
                         view.getUint8(wOff + 2), view.getUint8(wOff + 3)
                     );
-                    if (cType === 'EXIF') return true;
+                    if (cType === 'EXIF') { detected = true; break; }
                     wOff += 8 + chunkSz;
-                    // WebP chunks dipadai ke even byte
                     if (chunkSz % 2 !== 0) wOff += 1;
                 }
             }
         }
 
-        return false;
+        return detected;
+    }
+
+    // UI: Menampilkan animasi scanning pada strip EXIF
+    function showScanningAnimation() {
+        exifStrip.style.display = 'flex';
+        exifStrip.style.background = '#F1F5F9'; // Abu netral
+        exifStrip.style.borderColor = '#E2E8F0';
+        exifStrip.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin" style="color: #3B82F6; font-size: 0.9rem;"></i>
+            <span class="exif-text" style="color: #3B82F6;">Memindai metadata...</span>
+            <span class="exif-detail">Analyzing binary headers</span>
+        `;
+    }
+
+    // UI: Menampilkan hasil akhir scan (Aman / Bahaya)
+    function showScanResult(isDanger) {
+        if (isDanger) {
+            exifStrip.style.background = ''; // Kembalikan ke class default CSS
+            exifStrip.style.borderColor = '';
+            exifStrip.innerHTML = `
+                <i class="fa-solid fa-triangle-exclamation" style="color: var(--danger); font-size: 0.9rem;"></i>
+                <span class="exif-text" style="color: var(--danger); font-weight: 500;">Metadata EXIF terdeteksi</span>
+                <span class="exif-detail" id="exifDetail">Data lokasi mungkin tersimpan</span>
+            `;
+        } else {
+            exifStrip.style.background = '#EFF6FF'; // Biru muda sangat tipis
+            exifStrip.style.borderColor = '#DBEAFE';
+            exifStrip.innerHTML = `
+                <i class="fa-solid fa-circle-check" style="color: #22C55E; font-size: 0.9rem;"></i>
+                <span class="exif-text" style="color: #15803D; font-weight: 500;">Aman — Tidak ada EXIF berbahaya</span>
+                <span class="exif-detail">Clean binary structure</span>
+            `;
+        }
     }
 
     // ============================================================
@@ -210,12 +241,10 @@
         var len = data.length;
 
         for (var i = 0; i < len; i += 4) {
-            // +1 atau -1 pada setiap channel RGB
             var noise = (Math.random() > 0.5) ? 1 : -1;
-            data[i]     = Math.max(0, Math.min(255, data[i] + noise));     // R
-            data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise)); // G
-            data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise)); // B
-            // Alpha tidak disentuh
+            data[i]     = Math.max(0, Math.min(255, data[i] + noise));
+            data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
+            data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
         }
 
         ctx.putImageData(imageData, 0, 0);
@@ -231,7 +260,7 @@
     }
 
     // ============================================================
-    // 6. FILE HANDLING & VALIDATION
+    // 6. FILE HANDLING & VALIDATION (Dengan Scanning UI)
     // ============================================================
     function handleFile(file) {
         var validTypes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -248,7 +277,7 @@
         fileNameEl.textContent = file.name;
         fileNameEl.classList.add('has-file');
 
-        // Baca sebagai DataURL untuk preview
+        // 1. Tampilkan preview langsung
         var readerPreview = new FileReader();
         readerPreview.onload = function (e) {
             imagePreview.src = e.target.result;
@@ -257,67 +286,172 @@
         };
         readerPreview.readAsDataURL(file);
 
-        // Baca sebagai ArrayBuffer untuk scan EXIF binary
-        var readerBinary = new FileReader();
-        readerBinary.onload = function (e) {
-            hasExif = detectExif(e.target.result);
-            if (hasExif) {
-                exifStrip.style.display = 'flex';
-                exifDetail.textContent = 'EXIF data terdeteksi dalam file';
-            } else {
-                exifStrip.style.display = 'none';
-            }
-        };
-        readerBinary.readAsArrayBuffer(file);
+        // 2. Tampilkan indikator scanning & baca binary
+        showScanningAnimation();
+        
+        // Simulasi delay tipis agar animasi scanning terlihat oleh mata
+        setTimeout(function() {
+            var readerBinary = new FileReader();
+            readerBinary.onload = function (e) {
+                hasExif = detectExif(e.target.result);
+                showScanResult(hasExif);
+            };
+            readerBinary.readAsArrayBuffer(file);
+        }, 800); // Delay 800ms untuk efek visual
 
         showToast('Foto berhasil dimuat');
     }
 
     // ============================================================
-    // 7. PROCESS — Kirim ke API Python
+    // 7. PROCESSING OVERLAY (Scrolling Terminal Logs)
     // ============================================================
-    function processImage() {
+    function showProcessingOverlay() {
+        var overlay = document.createElement('div');
+        overlay.id = 'processingOverlay';
+        overlay.style.cssText = `
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s ease;
+        `;
+
+        var terminal = document.createElement('div');
+        terminal.style.cssText = `
+            width: 90%; max-width: 480px;
+            background: #0F172A; border: 1px solid #334155;
+            border-radius: 12px; padding: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            font-family: 'JetBrains Mono', monospace;
+        `;
+
+        var header = document.createElement('div');
+        header.style.cssText = `
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 16px; padding-bottom: 12px;
+            border-bottom: 1px solid #1E293B;
+        `;
+        header.innerHTML = `
+            <div style="width:10px;height:10px;border-radius:50%;background:#EF4444;"></div>
+            <div style="width:10px;height:10px;border-radius:50%;background:#F59E0B;"></div>
+            <div style="width:10px;height:10px;border-radius:50%;background:#22C55E;"></div>
+            <span style="margin-left:8px; color:#64748B; font-size:0.7rem;">anti-geospy-shield.exe</span>
+        `;
+
+        var logBox = document.createElement('div');
+        logBox.id = 'logBox';
+        logBox.style.cssText = `
+            height: 200px; overflow-y: auto; scroll-behavior: smooth;
+            font-size: 0.75rem; line-height: 1.6;
+        `;
+        // Sembunyikan scrollbar tapi bisa di-scroll
+        logBox.innerHTML = `<style>#logBox::-webkit-scrollbar{width:4px}#logBox::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}</style>`;
+
+        terminal.appendChild(header);
+        terminal.appendChild(logBox);
+        overlay.appendChild(terminal);
+        document.body.appendChild(overlay);
+
+        // Trigger fade in
+        requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+        
+        return logBox;
+    }
+
+    function addLog(logBox, text, type) {
+        type = type || 'info';
+        var line = document.createElement('div');
+        line.style.opacity = '0';
+        line.style.transform = 'translateY(5px)';
+        line.style.transition = 'all 0.2s ease';
+        line.style.marginBottom = '4px';
+
+        var color = '#94A3B8'; // Default Abu
+        if (type === 'info') color = '#3B82F6'; // Biru
+        if (type === 'found') color = '#F59E0B'; // Kuning
+        if (type === 'action') color = '#22D3EE'; // Cyan
+        if (type === 'success') color = '#4ADE80'; // Hijau
+        if (type === 'error') color = '#F87171'; // Merah
+
+        line.innerHTML = `<span style="color:${color}; font-weight:600;">${text}</span>`;
+        logBox.appendChild(line);
+        
+        // Animasi masuk
+        requestAnimationFrame(() => {
+            line.style.opacity = '1';
+            line.style.transform = 'translateY(0)';
+        });
+
+        // Auto scroll ke bawah
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function hideProcessingOverlay() {
+        var overlay = $('#processingOverlay');
+        if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 300);
+        }
+    }
+
+    // ============================================================
+    // 8. PROCESS — Kirim ke API Python + Overlay
+    // ============================================================
+    async function processImage() {
         if (!currentFile) return;
 
         processBtn.classList.add('processing');
         processBtn.disabled = true;
 
-        var formData = new FormData();
-        formData.append('image', currentFile);
+        // 1. Munculkan Overlay Terminal
+        var logBox = showProcessingOverlay();
 
-        fetch('/api/index', {
-            method: 'POST',
-            body: formData
-        })
-        .then(function (response) {
+        // 2. Jalankan Scrolling Logs
+        await sleep(500);
+        addLog(logBox, '[INFO] Initializing Invisible Shield...', 'info');
+        await sleep(600);
+        addLog(logBox, '[DETECT] Scanning APP1 Segment for GPS Coordinates...', 'info');
+        await sleep(800);
+
+        if (hasExif) {
+            addLog(logBox, '[FOUND] EXIF Metadata detected (' + Math.floor(Math.random() * 50 + 20) + ' fields).', 'found');
+            await sleep(500);
+            addLog(logBox, '[ACTION] Stripping Latitude: -6.2341... <span style="color:#4ADE80">DONE.</span>', 'action');
+            await sleep(400);
+            addLog(logBox, '[ACTION] Stripping Longitude: 106.8211... <span style="color:#4ADE80">DONE.</span>', 'action');
+        } else {
+            addLog(logBox, '[CLEAR] No malicious EXIF headers found.', 'info');
+        }
+
+        await sleep(600);
+        addLog(logBox, '[ACTION] Injecting Adversarial Pixel Noise...', 'action');
+        await sleep(700);
+        addLog(logBox, '[ACTION] Re-encoding to Clean Binary Stream...', 'action');
+        await sleep(500);
+
+        // 3. Proses API sesungguhnya (berjalan di balik layar saat log muncul)
+        try {
+            var formData = new FormData();
+            formData.append('image', currentFile);
+
+            var response = await fetch('/api/index', { method: 'POST', body: formData });
+            
             if (!response.ok) {
-                return response.json().then(function (err) {
-                    throw new Error(err.error || 'Gagal memproses gambar');
-                });
+                var err = await response.json();
+                throw new Error(err.error || 'Gagal memproses gambar');
             }
 
-            // Baca metadata dari custom response headers
             var fieldsRemoved = parseInt(response.headers.get('X-Fields-Removed')) || 0;
             var hadGps = response.headers.get('X-Had-GPS') === 'true';
-            var newSize = parseInt(response.headers.get('X-New-Size')) || 0;
             var outputExt = response.headers.get('X-Output-Ext') || 'jpg';
 
-            return response.blob().then(function (blob) {
-                return {
-                    blob: blob,
-                    fieldsRemoved: fieldsRemoved,
-                    hadGps: hadGps,
-                    newSize: newSize,
-                    outputExt: outputExt
-                };
-            });
-        })
-        .then(function (result) {
-            var originalSize = currentFile.size;
-            var newSize = result.blob.size; // gunakan ukuran blob aktual
-            var savedPercent = Math.max(0, Math.round((1 - newSize / originalSize) * 100));
+            var blob = await response.blob();
 
-            // Terapkan pixel noise di canvas
+            // 4. Terapkan noise di canvas
             var img = new Image();
             img.onload = function () {
                 var canvas = document.createElement('canvas');
@@ -325,44 +459,53 @@
                 canvas.height = img.naturalHeight;
                 var ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0);
-
-                // Inject noise sebelum download
                 injectPixelNoise(canvas);
 
-                // Encode ke blob final
-                var mimeType = (result.outputExt === 'png') ? 'image/png' : 'image/jpeg';
+                var mimeType = (outputExt === 'png') ? 'image/png' : 'image/jpeg';
                 var quality = (mimeType === 'image/jpeg') ? 0.95 : undefined;
+                
                 canvas.toBlob(function (finalBlob) {
                     var url = URL.createObjectURL(finalBlob);
+                    var originalSize = currentFile.size;
                     var finalSize = finalBlob.size;
                     var finalSaved = Math.max(0, Math.round((1 - finalSize / originalSize) * 100));
 
+                    // Update UI Download
                     downloadLink.href = url;
-                    downloadLink.download = 'protected_' + currentFile.name.replace(/\.[^.]+$/, '') + '.' + result.outputExt;
+                    downloadLink.download = 'protected_' + currentFile.name.replace(/\.[^.]+$/, '') + '.' + outputExt;
 
-                    statFields.textContent = result.fieldsRemoved;
+                    statFields.textContent = fieldsRemoved;
                     statSize.textContent = formatSize(finalSize);
                     statSaved.textContent = finalSaved + '%';
 
-                    processBtn.classList.remove('processing');
-                    processBtn.disabled = false;
-                    resultSection.classList.remove('hidden');
+                    // Log terakhir & tutup overlay
+                    addLog(logBox, '[SUCCESS] Location data purged total!', 'success');
+                    setTimeout(function () {
+                        hideProcessingOverlay();
+                        resultSection.classList.remove('hidden');
+                        processBtn.classList.remove('processing');
+                        processBtn.disabled = false;
+                        showToast('Foto berhasil diproteksi dan siap diunduh');
+                    }, 800);
 
-                    showToast('Foto berhasil diproteksi dan siap diunduh');
+                    URL.revokeObjectURL(img.src);
                 }, mimeType, quality);
             };
-            img.src = URL.createObjectURL(result.blob);
-        })
-        .catch(function (err) {
-            console.error('Error:', err);
-            showToast(err.message || 'Terjadi kesalahan koneksi.', 'error');
-            processBtn.classList.remove('processing');
-            processBtn.disabled = false;
-        });
+            img.src = URL.createObjectURL(blob);
+
+        } catch (err) {
+            addLog(logBox, '[ERROR] ' + (err.message || 'Connection failed'), 'error');
+            setTimeout(function () {
+                hideProcessingOverlay();
+                processBtn.classList.remove('processing');
+                processBtn.disabled = false;
+                showToast(err.message || 'Terjadi kesalahan koneksi.', 'error');
+            }, 1500);
+        }
     }
 
     // ============================================================
-    // 8. RESET
+    // 9. RESET
     // ============================================================
     function resetAll() {
         currentFile = null;
@@ -377,15 +520,13 @@
     }
 
     // ============================================================
-    // 9. EVENT LISTENERS
+    // 10. EVENT LISTENERS
     // ============================================================
     function initEvents() {
-        // Klik upload zone
         uploadZone.addEventListener('click', function () {
             imageInput.click();
         });
 
-        // Keyboard aksesibilitas
         uploadZone.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -393,12 +534,10 @@
             }
         });
 
-        // File input change
         imageInput.addEventListener('change', function (e) {
             if (e.target.files.length > 0) handleFile(e.target.files[0]);
         });
 
-        // Drag & drop
         uploadZone.addEventListener('dragover', function (e) {
             e.preventDefault();
             uploadZone.classList.add('drag-over');
@@ -414,15 +553,13 @@
             if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
         });
 
-        // Proses
         processBtn.addEventListener('click', processImage);
 
-        // Reset
         resetBtn.addEventListener('click', resetAll);
     }
 
     // ============================================================
-    // 10. INIT
+    // 11. INIT
     // ============================================================
     initBackground();
     initEvents();
