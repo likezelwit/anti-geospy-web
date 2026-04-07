@@ -1,48 +1,66 @@
-from flask import Flask, request, send_file
-from PIL import Image, ImageChops
+from flask import Flask, request, send_file, jsonify
+from flask_cors import CORS
+from PIL import Image
 import io
-import random
 
 app = Flask(__name__)
+CORS(app, expose_headers=[
+    'X-Fields-Removed', 'X-Had-GPS', 'X-New-Size', 'X-Output-Ext'
+])
 
 @app.route('/api/index', methods=['POST'])
 def protect_image():
     if 'image' not in request.files:
-        return "No image uploaded", 400
-    
+        return jsonify({"error": "Tidak ada gambar yang diunggah"}), 400
+
     file = request.files['image']
-    img = Image.open(file)
+    allowed = {'image/jpeg', 'image/png', 'image/webp'}
+    if file.content_type not in allowed:
+        return jsonify({"error": "Format tidak didukung. Gunakan JPG, PNG, atau WebP."}), 400
 
-    # 1. STRIP METADATA (EXIF)
-    # Kita buat canvas baru dan tempel fotonya di sana agar metadata asli hilang total.
-    data = list(img.getdata())
-    protected_img = Image.new(img.mode, img.size)
-    protected_img.putdata(data)
+    try:
+        img = Image.open(file.stream)
 
-    # 2. PIXEL NOISE INJECTION (Adversarial Perturbation)
-    # Kita tambahkan sedikit variasi warna (+1 atau -1) secara acak pada setiap pixel.
-    # Perubahan ini tidak terlihat mata manusia, tapi merusak pola digital bagi AI.
-    width, height = protected_img.size
-    pixels = protected_img.load()
-    
-    for y in range(height):
-        for x in range(width):
-            r, g, b = pixels[x, y]
-            # Tambahkan gangguan kecil yang tidak kasat mata
-            noise = random.randint(-1, 1)
-            pixels[x, y] = (
-                max(0, min(255, r + noise)),
-                max(0, min(255, g + noise)),
-                max(0, min(255, b + noise))
-            )
+        # Kumpulkan info metadata SEBELUM di-strip
+        exif = img.getexif()
+        field_count = len(exif) if exif else 0
+        has_gps = bool(exif.get(34853)) if exif else False  # Tag GPSInfoIFD
 
-    # Simpan ke memori untuk dikirim balik ke user
-    img_io = io.BytesIO()
-    protected_img.save(img_io, 'JPEG', quality=95)
-    img_io.seek(0)
+        # Tentukan apakah gambar punya transparansi
+        has_alpha = img.mode in ('RGBA', 'LA', 'PA')
 
-    return send_file(img_io, mimetype='image/jpeg')
+        # 1. STRIP METADATA — buat canvas baru, tempel pixel, metadata hilang total
+        if has_alpha:
+            clean = Image.new('RGBA', img.size, (0, 0, 0, 0))
+            clean.paste(img)
+            out_format, mime, ext = 'PNG', 'image/png', 'png'
+        else:
+            rgb = img.convert('RGB')  # Tangani grayscale, palette, CMYK, dll
+            clean = Image.new('RGB', rgb.size, (255, 255, 255))
+            clean.paste(rgb)
+            out_format, mime, ext = 'JPEG', 'image/jpeg', 'jpg'
 
-# Penting untuk Vercel Serverless
+        # 2. Encode ke memori
+        buf = io.BytesIO()
+        save_opts = {'format': out_format, 'optimize': True}
+        if out_format == 'JPEG':
+            save_opts['quality'] = 95
+        clean.save(buf, **save_opts)
+        buf.seek(0)
+        new_size = buf.getbuffer().nbytes
+
+        # Kirim gambar + metadata info via response headers
+        resp = send_file(buf, mimetype=mime)
+        resp.headers['X-Fields-Removed'] = str(field_count)
+        resp.headers['X-Had-GPS'] = str(has_gps).lower()
+        resp.headers['X-New-Size'] = str(new_size)
+        resp.headers['X-Output-Ext'] = ext
+        return resp
+
+    except Exception as e:
+        return jsonify({"error": f"Gagal memproses: {str(e)}"}), 500
+
+
+# Untuk testing lokal: python api/index.py
 if __name__ == '__main__':
-    app.run()
+    app.run(port=5000, debug=True)
