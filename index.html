@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anti-GeoSpy | Invisible Shield</title>
+    <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ Anti-GeoSpy</h1>
+            <p>Lindungi privasi lokasi fotomu dari pelacakan AI.</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <input type="file" id="imageInput" accept="image/*" hidden>
+                <label for="imageInput" class="upload-btn">
+                    <span>Pilih Foto</span>
+                </label>
+                <p id="fileName">Belum ada foto terpilih</p>
+            </div>
+
+            <div id="previewContainer" class="hidden">
+                <h3>Preview:</h3>
+                <img id="imagePreview" src="" alt="Preview">
+                <button id="processBtn" class="primary-btn">Bersihkan & Proteksi</button>
+            </div>
+
+            <div id="resultSection" class="hidden">
+                <p class="success-msg">✅ Foto berhasil diproteksi!</p>
+                <a id="downloadLink" href="#" download="protected-image.jpg" class="download-btn">Download Foto Aman</a>
+            </div>
+        </main>
+
+        <footer>
+            <p>Aman untuk manusia, membingungkan bagi AI.</p>
+        </footer>
+    </div>
+
+    <script src="src/main.js"></script>
+</body>
+</html>
