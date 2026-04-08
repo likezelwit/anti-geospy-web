@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ZeroTrace - Lindungi privasi lokasi fotomu dari pelacakan AI geolokasi dengan teknologi anti-EXIF dan pertahanan adversarial.">
+    <title>ZeroTrace | Invisible Shield</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- CSS: Pemanggilan relatif ke folder yang sama -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Background Elements -->
+    <canvas id="bgCanvas" aria-hidden="true"></canvas>
+    <div class="bg-pattern" aria-hidden="true"></div>
+    <div class="orb orb-1" aria-hidden="true"></div>
+    <div class="orb orb-2" aria-hidden="true"></div>
+    <div class="orb orb-3" aria-hidden="true"></div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <div class="container">
+        
+        <!-- Header -->
+        <header>
+            <div class="brand-wrapper">
+                <div class="shield-icon" aria-hidden="true">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h1>Zero<span>Trace</span></h1>
+            </div>
+            <p class="tagline">Hancurkan jejak lokasi. Lindungi privasi digital.</p>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <div class="upload-section glass-card">
+                <div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="Upload gambar untuk diproteksi">
+                    <div class="upload-icon">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <div class="upload-text">
+                        <p class="main-text">Seret foto ke sini atau <span>pilih file</span></p>
+                        <p class="sub-text">JPG, PNG, WebP &mdash; Maks <span class="accent">20MB</span></p>
+                    </div>
+                    <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <p id="fileName">Belum ada foto terpilih</p>
+
+                <div class="features-row">
+                    <div class="badge"><i class="fa-solid fa-location-crosshairs"></i> Hapus GPS</div>
+                    <div class="badge"><i class="fa-solid fa-eye-slash"></i> Confuse AI</div>
+                    <div class="badge"><i class="fa-solid fa-lock"></i> Aman & Lokal</div>
+                </div>
+            </div>
+
+            <!-- Preview & Process Section -->
+            <div id="previewContainer" class="hidden">
+                <div class="glass-card">
+                    <div class="preview-label">
+                        <span class="dot"></span>
+                        Preview Asli
+                    </div>
+                    
+                    <div class="image-frame">
+                        <span class="corner-mark tl"></span>
+                        <span class="corner-mark tr"></span>
+                        <span class="corner-mark bl"></span>
+                        <span class="corner-mark br"></span>
+                        <img id="imagePreview" src="" alt="Preview foto yang dipilih">
+                    </div>
+
+                    <div class="exif-strip" id="exifStrip" style="display:none;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span class="exif-text">Metadata EXIF terdeteksi</span>
+                        <span class="exif-detail" id="exifDetail">Scanning...</span>
+                    </div>
+
+                    <div class="btn-row">
+                        <button id="processBtn" class="primary-btn" aria-label="Bersihkan dan proteksi foto">
+                            <span class="btn-text"><i class="fa-solid fa-wand-magic-sparkles"></i> Aktifkan Shield</span>
+                            <span class="btn-loader"></span>
+                        </button>
+                        <button id="resetBtn" class="secondary-btn" aria-label="Hapus foto dan mulai ulang" title="Reset">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Section -->
+            <div id="resultSection" class="hidden">
+                <div class="glass-card result-card">
+                    <div class="success-icon">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <h2 class="success-msg">Foto Terproteksi</h2>
+                    <p class="success-sub">Metadata lokasi telah dihancurkan dan pertahanan visual diterapkan.</p>
+
+                    <div class="clean-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="statFields">0</div>
+                            <div class="stat-label">Field Dihapus</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statSize">0 KB</div>
+                            <div class="stat-label">Ukuran Final</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statSaved">0%</div>
+                            <div class="stat-label">Lebih Ringan</div>
+                        </div>
+                    </div>
+
+                    <div id="shieldDetails" class="shield-tech">
+                        <p class="tech-text">
+                            <i class="fa-solid fa-microchip"></i> <span id="gpsSpoofText">Status: Idle</span>
+                        </p>
+                    </div>
+
+                    <a id="downloadLink" href="#" download="protected-image.jpg" class="download-btn" aria-label="Download foto yang sudah diproteksi">
+                        <i class="fa-solid fa-download"></i>
+                        Download Aman
+                    </a>
+                </div>
+            </div>
+
+            <!-- How It Works -->
+            <section class="info-section glass-card">
+                <h2 class="section-title">Cara Kerja ZeroTrace</h2>
+                <div class="steps-grid">
+                    <div class="step-item">
+                        <div class="step-icon"><i class="fa-solid fa-upload"></i></div>
+                        <div class="step-content">
+                            <h4>1. Upload</h4>
+                            <p>Pilih foto yang ingin dilindungi. Proses berjalan di server.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                        <div class="step-content">
+                            <h4>2. Scan & Hapus</h4>
+                            <p>Mendeteksi dan menghapus total data EXIF & GPS.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="fa-solid fa-user-shield"></i></div>
+                        <div class="step-content">
+                            <h4>3. Shielding</h4>
+                            <p>Menerapkan noise visual untuk membingungkan AI geolokasi.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-top">
+                <button onclick="window.open('https://zerotrace-web.vercel.app/Support', '_blank')" class="support-btn">
+                    <i class="fa-regular fa-life-ring"></i> Support Center
+                </button>
+            </div>
+            
+            <div class="footer-line" aria-hidden="true"></div>
+            
+            <div class="footer-bottom">
+                <p class="copyright">&copy; <span id="year"></span> ZeroTrace. All rights reserved.</p>
+                <div class="legal-links">
+                    <a href="https://www.freeprivacypolicy.com/live/e9b35dbe-79f8-46aa-8a34-3b10c2488879" target="_blank" rel="noopener noreferrer">Disclaimer</a>
+                    <span class="separator">•</span>
+                    <a href="https://www.freeprivacypolicy.com/live/8b4ca688-807e-4e36-ac19-116265ecc339" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+                    <span class="separator">•</span>
+                    <a href="https://www.freeprivacypolicy.com/live/b7205f43-1753-426a-a38c-601fdb72d12f" target="_blank" rel="noopener noreferrer">Terms & Conditions</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JS: Pemanggilan relatif ke folder yang sama -->
+    <script src="main.js"></script>
+    <script>
+        // Update tahun copyright otomatis
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>

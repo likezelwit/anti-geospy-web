@@ -1,7 +1,7 @@
 // ============================================================
-// Anti-GeoSpy — Logika utama
-// Client-side: analisis EXIF (untuk UI), komunikasi API, download
-// Semua proteksi pixel berjalan di server (api/index.py)
+// ZeroTrace — Logika Utama
+// Client-side: analisis EXIF, komunikasi API, download
+// Proteksi pixel dijalankan di server (api/index.py)
 // ============================================================
 
 (function () {
@@ -30,7 +30,7 @@
     // === State ===
     var currentFile = null;
     var metadataInfo = { hasExif: false, fieldCount: 0, hasGPS: false, format: 'Unknown' };
-    // Tambah variabel untuk menyimpan URL object agar bisa di-revoke saat reset
+    // Variabel untuk menyimpan URL object agar memori bersih saat reset
     var currentObjectUrl = null; 
 
     // ============================================================
@@ -47,13 +47,13 @@
         }
 
         function createParticles() {
-            var count = Math.floor((width * height) / 22000);
+            var count = Math.floor((width * height) / 20000); // Sedikit lebih banyak partikel
             particles = [];
             for (var i = 0; i < count; i++) {
                 particles.push({
                     x: Math.random() * width, y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2,
-                    r: Math.random() * 1.4 + 0.5, alpha: Math.random() * 0.18 + 0.04
+                    vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+                    r: Math.random() * 1.5 + 0.5, alpha: Math.random() * 0.2 + 0.05
                 });
             }
         }
@@ -68,26 +68,27 @@
 
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, Math.max(0.1, p.r), 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(59, 130, 246, ' + p.alpha + ')';
+                ctx.fillStyle = 'rgba(14, 165, 233, ' + p.alpha + ')'; // Warna sesuai tema baru (Sky Blue)
                 ctx.fill();
 
                 for (var j = i + 1; j < particles.length; j++) {
                     var q = particles[j];
                     var dx = p.x - q.x, dy = p.y - q.y;
                     var dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 110) {
+                    if (dist < 120) {
                         ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y);
-                        ctx.strokeStyle = 'rgba(59, 130, 246, ' + (0.05 * (1 - dist / 110)) + ')';
+                        ctx.strokeStyle = 'rgba(14, 165, 233, ' + (0.08 * (1 - dist / 120)) + ')';
                         ctx.lineWidth = 0.5; ctx.stroke();
                     }
                 }
 
                 var mdx = p.x - mouse.x, mdy = p.y - mouse.y;
                 var mDist = Math.sqrt(mdx * mdx + mdy * mdy);
-                if (mDist < 140) {
+                if (mDist < 150) {
                     ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y);
-                    ctx.strokeStyle = 'rgba(59, 130, 246, ' + (0.1 * (1 - mDist / 140)) + ')';
-                    ctx.lineWidth = 0.6; ctx.stroke();
+                    ctx.strokeStyle = 'rgba(14, 165, 233, ' + (0.15 * (1 - mDist / 150)) + ')';
+                    ctx.lineWidth: 0.6; 
+                    ctx.stroke();
                 }
             }
             requestAnimationFrame(draw);
@@ -116,7 +117,7 @@
     }
 
     // ============================================================
-    // 3. DEEP EXIF ANALYZER (Baca binary langsung, tanpa library)
+    // 3. DEEP EXIF ANALYZER
     // ============================================================
     function analyzeMetadata(arrayBuffer) {
         var view = new DataView(arrayBuffer);
@@ -209,9 +210,9 @@
         exifStrip.style.background = '#F1F5F9';
         exifStrip.style.borderColor = '#E2E8F0';
         exifStrip.innerHTML =
-            '<i class="fa-solid fa-spinner fa-spin" style="color: #3B82F6; font-size: 0.9rem;"></i>' +
-            '<span class="exif-text" style="color: #3B82F6;">Membaca struktur binary...</span>' +
-            '<span class="exif-detail">Analyzing headers</span>';
+            '<i class="fa-solid fa-circle-notch fa-spin" style="color: #0EA5E9; font-size: 0.9rem;"></i>' +
+            '<span class="exif-text" style="color: #64748B;">Menganalisis struktur file...</span>' +
+            '<span class="exif-detail">Scanning Binary</span>';
     }
 
     function showScanResult(meta) {
@@ -226,11 +227,11 @@
                 '<span class="exif-text" style="color: var(--danger); font-weight: 500;">Ditemukan ' + meta.fieldCount + ' field metadata' + gpsText + '</span>' +
                 '<span class="exif-detail">Format: ' + meta.format + '</span>';
         } else {
-            exifStrip.style.background = '#EFF6FF';
-            exifStrip.style.borderColor = '#DBEAFE';
+            exifStrip.style.background = '#F0FDF4';
+            exifStrip.style.borderColor = '#BBF7D0';
             exifStrip.innerHTML =
-                '<i class="fa-solid fa-circle-check" style="color: #22C55E; font-size: 0.9rem;"></i>' +
-                '<span class="exif-text" style="color: #15803D; font-weight: 500;">Aman — File sudah bersih (0 metadata)</span>' +
+                '<i class="fa-solid fa-circle-check" style="color: #16A34A; font-size: 0.9rem;"></i>' +
+                '<span class="exif-text" style="color: #15803D; font-weight: 500;">Aman — Tidak ada metadata</span>' +
                 '<span class="exif-detail">Format: ' + meta.format + '</span>';
         }
     }
@@ -263,17 +264,17 @@
 
         var header = document.createElement('div');
         header.style.cssText =
-            'background: #1E293B; padding: 8px 12px; display: flex; align-items: center; gap: 6px;';
+            'background: #0F172A; padding: 8px 12px; display: flex; align-items: center; gap: 6px;';
         header.innerHTML =
             '<div style="width:8px;height:8px;border-radius:50%;background:#EF4444;"></div>' +
             '<div style="width:8px;height:8px;border-radius:50%;background:#F59E0B;"></div>' +
             '<div style="width:8px;height:8px;border-radius:50%;background:#22C55E;"></div>' +
-            '<span style="margin-left:6px; color:#64748B; font-size:0.65rem; font-family:\'JetBrains Mono\',monospace;">shield-process.log</span>';
+            '<span style="margin-left:6px; color:#94A3B8; font-size:0.65rem; font-family:\'JetBrains Mono\',monospace;">zerotrace-shield.log</span>';
 
         var logBody = document.createElement('div');
         logBody.id = 'logBody';
         logBody.style.cssText =
-            'background: #0F172A; padding: 12px; max-height: 180px; overflow-y: auto;' +
+            'background: #020617; padding: 12px; max-height: 180px; overflow-y: auto;' +
             'font-family: \'JetBrains Mono\', monospace; font-size: 0.7rem; line-height: 1.6;';
         logBody.innerHTML = '<style>#logBody::-webkit-scrollbar{width:3px}#logBody::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}</style>';
 
@@ -281,7 +282,7 @@
         logWrapper.appendChild(logBody);
 
         var btnRow = previewContainer.querySelector('.btn-row');
-        btnRow.after(logWrapper);
+        if (btnRow) btnRow.after(logWrapper);
 
         return logBody;
     }
@@ -292,12 +293,12 @@
         line.style.cssText = 'margin-bottom: 2px; opacity: 0; transform: translateX(-5px); transition: all 0.15s ease;';
 
         var color = '#94A3B8';
-        if (type === 'info')    color = '#3B82F6';
-        if (type === 'found')   color = '#F59E0B';
-        if (type === 'action')  color = '#22D3EE';
-        if (type === 'success') color = '#4ADE80';
-        if (type === 'warn')    color = '#FB923C';
-        if (type === 'error')   color = '#F87171';
+        if (type === 'info')    color = '#38BDF8'; // Sky blue
+        if (type === 'found')   color = '#FBBF24'; // Amber
+        if (type === 'action')  color = '#22D3EE'; // Cyan
+        if (type === 'success') color = '#4ADE80'; // Green
+        if (type === 'warn')    color = '#FB923C'; // Orange
+        if (type === 'error')   color = '#F87171'; // Red
 
         line.innerHTML = '<span style="color:' + color + '">' + text + '</span>';
         logBody.appendChild(line);
@@ -355,12 +356,12 @@
     }
 
     // ============================================================
-    // 8. PROCESS — Kirim ke API, terima gambar yang sudah diproteksi
+    // 8. PROCESS — Kirim ke API
     // ============================================================
     async function processImage() {
         if (!currentFile) return;
 
-        // Bersihkan memori URL lama jika ada (misal user proses ulang tanpa reset)
+        // Revoke URL lama jika ada
         if (currentObjectUrl) {
             URL.revokeObjectURL(currentObjectUrl);
             currentObjectUrl = null;
@@ -374,7 +375,7 @@
 
         // ── Log phase 1: Metadata scan ──
         await sleep(300);
-        addLog(logBody, '[INIT] Memulai Invisible Shield v2.0...', 'info');
+        addLog(logBody, '[INIT] Memulai ZeroTrace Shield v2.0...', 'info');
         await sleep(350);
         addLog(logBody, '[SCAN] Format: ' + metadataInfo.format + ' | Ukuran: ' + formatSize(currentFile.size), 'info');
         await sleep(400);
@@ -385,7 +386,7 @@
             if (metadataInfo.hasGPS) {
                 addLog(logBody, '[WARN] GPS IFD ditemukan — koordinat asli tersimpan!', 'found');
                 await sleep(300);
-                addLog(logBody, '[ACT] Stripping seluruh EXIF GPS offset...', 'action');
+                addLog(logBody, '[ACT] Menghapus seluruh EXIF & GPS offset...', 'action');
             } else {
                 addLog(logBody, '[INFO] Tidak ada GPS, tapi metadata lain akan dihapus total.', 'info');
             }
@@ -414,6 +415,7 @@
             var formData = new FormData();
             formData.append('image', currentFile);
 
+            // Pastikan endpoint API sesuai struktur folder Anda
             var response = await fetch('/api/index', { method: 'POST', body: formData });
 
             if (!response.ok) {
@@ -421,7 +423,7 @@
                 throw new Error(err.error || 'Gagal memproses gambar');
             }
 
-            // Baca semua custom headers dari server
+            // Baca headers
             var fieldsRemoved = parseInt(response.headers.get('X-Fields-Removed')) || 0;
             var outputExt = response.headers.get('X-Output-Ext') || 'jpg';
             var noiseApplied = response.headers.get('X-Noise-Applied') || 'false';
@@ -459,10 +461,9 @@
             addLog(logBody, '[DONE] Shield aktif. Foto siap diunduh.', 'success');
 
             // ── Siapkan download ──
-            // Simpan URL di variable global agar bisa di-revoke nanti
             currentObjectUrl = URL.createObjectURL(blob);
             downloadLink.href = currentObjectUrl;
-            downloadLink.download = 'protected_' + currentFile.name.replace(/\.[^.]+$/, '') + '.' + outputExt;
+            downloadLink.download = 'zerotrace_' + currentFile.name.replace(/\.[^.]+$/, '') + '.' + outputExt;
 
             // ── Update statistik ──
             statFields.textContent = fieldsRemoved;
@@ -481,9 +482,6 @@
             processBtn.disabled = false;
             showToast('Foto berhasil diproteksi — siap diunduh');
 
-            // HAPUS BARIS INI: URL.revokeObjectURL(url); 
-            // Jangan di-revoke di sini supaya tombol download tetap berfungsi.
-
         } catch (err) {
             addLog(logBody, '[ERROR] ' + (err.message || 'Koneksi gagal'), 'error');
             await sleep(1500);
@@ -498,7 +496,7 @@
     // 9. RESET
     // ============================================================
     function resetAll() {
-        // Revoke URL lama sebelum mereset state
+        // Revoke URL lama
         if (currentObjectUrl) {
             URL.revokeObjectURL(currentObjectUrl);
             currentObjectUrl = null;
