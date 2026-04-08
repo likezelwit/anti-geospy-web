@@ -87,7 +87,8 @@
                 if (mDist < 150) {
                     ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y);
                     ctx.strokeStyle = 'rgba(14, 165, 233, ' + (0.15 * (1 - mDist / 150)) + ')';
-                    ctx.lineWidth: 0.6; 
+                    // PERBAIKAN: Mengubah titik dua (:) menjadi sama dengan (=)
+                    ctx.lineWidth = 0.6; 
                     ctx.stroke();
                 }
             }
@@ -415,10 +416,17 @@
             var formData = new FormData();
             formData.append('image', currentFile);
 
-            // Pastikan endpoint API sesuai struktur folder Anda
-            var response = await fetch('/api/index', { method: 'POST', body: formData });
+            // PERBAIKAN: Menggunakan endpoint '/api/index.py' langsung untuk Vercel
+            var response = await fetch('/api/index.py', { 
+                method: 'POST', 
+                body: formData 
+            });
 
             if (!response.ok) {
+                // Cek spesifik error 404
+                if (response.status === 404) {
+                    throw new Error('Endpoint API tidak ditemukan (404). Pastikan server berjalan.');
+                }
                 var err = await response.json();
                 throw new Error(err.error || 'Gagal memproses gambar');
             }
