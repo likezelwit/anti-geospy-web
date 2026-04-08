@@ -30,6 +30,8 @@
     // === State ===
     var currentFile = null;
     var metadataInfo = { hasExif: false, fieldCount: 0, hasGPS: false, format: 'Unknown' };
+    // Tambah variabel untuk menyimpan URL object agar bisa di-revoke saat reset
+    var currentObjectUrl = null; 
 
     // ============================================================
     // 1. PARTICLE BACKGROUND
@@ -358,6 +360,12 @@
     async function processImage() {
         if (!currentFile) return;
 
+        // Bersihkan memori URL lama jika ada (misal user proses ulang tanpa reset)
+        if (currentObjectUrl) {
+            URL.revokeObjectURL(currentObjectUrl);
+            currentObjectUrl = null;
+        }
+
         processBtn.classList.add('processing');
         processBtn.disabled = true;
         resultSection.classList.add('hidden');
@@ -451,8 +459,9 @@
             addLog(logBody, '[DONE] Shield aktif. Foto siap diunduh.', 'success');
 
             // ── Siapkan download ──
-            var url = URL.createObjectURL(blob);
-            downloadLink.href = url;
+            // Simpan URL di variable global agar bisa di-revoke nanti
+            currentObjectUrl = URL.createObjectURL(blob);
+            downloadLink.href = currentObjectUrl;
             downloadLink.download = 'protected_' + currentFile.name.replace(/\.[^.]+$/, '') + '.' + outputExt;
 
             // ── Update statistik ──
@@ -472,7 +481,8 @@
             processBtn.disabled = false;
             showToast('Foto berhasil diproteksi — siap diunduh');
 
-            URL.revokeObjectURL(url);
+            // HAPUS BARIS INI: URL.revokeObjectURL(url); 
+            // Jangan di-revoke di sini supaya tombol download tetap berfungsi.
 
         } catch (err) {
             addLog(logBody, '[ERROR] ' + (err.message || 'Koneksi gagal'), 'error');
@@ -488,6 +498,12 @@
     // 9. RESET
     // ============================================================
     function resetAll() {
+        // Revoke URL lama sebelum mereset state
+        if (currentObjectUrl) {
+            URL.revokeObjectURL(currentObjectUrl);
+            currentObjectUrl = null;
+        }
+
         currentFile = null;
         metadataInfo = { hasExif: false, fieldCount: 0, hasGPS: false, format: 'Unknown' };
         imageInput.value = '';
