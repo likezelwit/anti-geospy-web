@@ -10,8 +10,8 @@
       "destination": "/app/index.html"
     },
     {
-      "source": "/assets/(.*)",
-      "destination": "/public/assets/$1"
+      "source": "/app/(.*)",
+      "destination": "/app/$1"
     },
     {
       "source": "/(.*)",
