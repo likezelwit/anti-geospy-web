@@ -1,290 +1,156 @@
 <!DOCTYPE html>
-<html lang="id">
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ZeroTrace - Lindungi privasi lokasi fotomu. Hapus EXIF, GPS, dan tipu AI pelacak.">
-    <title>ZeroTrace | Invisible Shield</title>
-
-    <!-- Fonts -->
+    <title>Anti-GeoSpy | Invisible Shield</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-    <!-- CSS Landing Page -->
-    <link rel="stylesheet" href="landing.css">
+    <link rel="stylesheet" href="src/style.css">
 </head>
-
 <body>
 
-    <!-- Background Animation -->
-    <canvas id="bgCanvas"></canvas>
-    <div class="bg-gradient"></div>
+    <canvas id="bgCanvas" aria-hidden="true"></canvas>
+    <div class="bg-pattern" aria-hidden="true"></div>
+    <div class="orb orb-1" aria-hidden="true"></div>
+    <div class="orb orb-2" aria-hidden="true"></div>
+    <div class="orb orb-3" aria-hidden="true"></div>
 
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container nav-container">
-            <div class="nav-brand">
-                <i class="fa-solid fa-shield-halved"></i> ZeroTrace
-            </div>
-            <a href="./app/" class="btn-nav">Buka Aplikasi</a>
-        </div>
-    </nav>
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-    <!-- Hero Section -->
-    <header class="hero">
-        <div class="container hero-content">
-            <div class="hero-badge">
-                <i class="fa-solid fa-bolt"></i> Perlindungan Instan
+    <div class="container">
+
+        <header>
+            <div class="shield-icon" aria-hidden="true">
+                <i class="fa-solid fa-shield-halved"></i>
             </div>
-            <h1>Hancurkan Jejak<br><span>Digital Anda</span></h1>
-            <p class="hero-desc">
-                Alat gratis untuk menghapus metadata EXIF, GPS, dan menerapkan pertahanan visual yang membingungkan AI pelacak lokasi. Aman, cepat, dan tanpa menyimpan data Anda.
-            </p>
-            <div class="hero-actions">
-                <a href="./app/" class="btn-primary">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Mulai Proteksi Foto
-                </a>
-                <a href="#how-it-works" class="btn-secondary">
-                    Pelajari Cara Kerja
-                </a>
-            </div>
-            
-            <!-- Dashboard Preview Mockup (Visual Only) -->
-            <div class="hero-mockup">
-                <div class="mockup-card">
-                    <div class="mockup-header">
-                        <div class="dots"><span></span><span></span><span></span></div>
-                        <div class="mockup-title">zerotrace_shield.log</div>
+            <h1>Anti-<span>GeoSpy</span></h1>
+            <p>Lindungi privasi lokasi fotomu dari pelacakan AI geolokasi.</p>
+        </header>
+
+        <main>
+            <div class="upload-section glass-card">
+                <div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="Upload gambar untuk diproteksi">
+                    <div class="upload-icon">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
                     </div>
-                    <div class="mockup-body">
-                        <div class="line line-1"></div>
-                        <div class="line line-2"></div>
-                        <div class="line line-3"></div>
-                        <div class="mockup-status">
-                            <i class="fa-solid fa-check-circle"></i> System Protected
-                        </div>
+                    <div class="upload-text">
+                        <p class="main-text">Seret foto ke sini atau <span>pilih file</span></p>
+                        <p class="sub-text">JPG, PNG, WebP &mdash; Maks <span class="accent">20MB</span></p>
                     </div>
+                    <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp">
                 </div>
-            </div>
-        </div>
-    </header>
+                <p id="fileName">Belum ada foto terpilih</p>
 
-    <!-- Features Section -->
-    <section class="features">
-        <div class="container">
-            <div class="section-header">
-                <h2>Mengapa ZeroTrace?</h2>
-                <p>Jangan biarkan foto membocorkan lokasi rumah atau tempat kerja Anda.</p>
-            </div>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="f-icon"><i class="fa-solid fa-eraser"></i></div>
-                    <h3>Hapus EXIF Total</h3>
-                    <p>Menghapus semua metadata tersembunyi termasuk koordinat GPS, kamera, dan waktu pengambilan.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="f-icon"><i class="fa-solid fa-robot"></i></div>
-                    <h3>Anti AI Geospy</h3>
-                    <p>Menambahkan noise visual yang tidak terlihat oleh mata manusia tapi membingungkan algoritma pelacakan AI.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="f-icon"><i class="fa-solid fa-server"></i></div>
-                    <h3>Server-Side Processing</h3>
-                    <p>Proses berjalan di server. Foto Anda tidak disimpan permanen dan langsung dihapus setelah diproses.</p>
+                <div class="features-row">
+                    <div class="badge"><i class="fa-solid fa-location-crosshairs"></i> Hapus EXIF GPS</div>
+                    <div class="badge"><i class="fa-solid fa-eye-slash"></i> Confuse AI</div>
+                    <div class="badge"><i class="fa-solid fa-lock"></i> Lokal & Aman</div>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- Credits & Partners Section (Requested) -->
-    <section class="credits-section">
-        <div class="container">
-            <div class="credits-grid">
-                
-                <!-- Created By -->
-                <div class="credit-box creator-box">
-                    <span class="credit-label">Dibuat oleh</span>
-                    <div class="logo-wrapper">
-                        <!-- Note: Pastikan URL gambar valid. Saya menggunakan path standar i.ibb.co -->
-                        <img src="https://i.ibb.co/chgNwbpV/VVe-Logo.png" alt="VowViw Entertainment Logo" class="partner-logo">
+            <div id="previewContainer" class="hidden">
+                <div class="glass-card">
+                    <div class="preview-label">
+                        <span class="dot"></span>
+                        Preview
                     </div>
-                    <h3>VowViw Entertainment</h3>
-                </div>
+                    <div class="image-frame">
+                        <span class="corner-mark tl"></span>
+                        <span class="corner-mark tr"></span>
+                        <span class="corner-mark bl"></span>
+                        <span class="corner-mark br"></span>
+                        <img id="imagePreview" src="" alt="Preview foto yang dipilih">
+                    </div>
 
-                <!-- Supported By Group -->
-                <div class="credit-support-group">
-                    <span class="credit-label">Didukung penuh oleh</span>
-                    <div class="partners-row">
-                        
-                        <!-- Partner 1 -->
-                        <div class="partner-card">
-                            <div class="logo-wrapper small">
-                                <img src="https://i.ibb.co/21gtvQNk/Whats-App-Image-2026-04-04-at-14-45-13.jpg" alt="After Rain Tales Logo" class="partner-logo">
-                            </div>
-                            <span>After Rain Tales</span>
-                        </div>
+                    <div class="exif-strip" id="exifStrip" style="display:none;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span class="exif-text">Metadata EXIF terdeteksi</span>
+                        <span class="exif-detail" id="exifDetail">Data lokasi mungkin tersimpan</span>
+                    </div>
 
-                        <!-- Partner 2 -->
-                        <div class="partner-card">
-                            <div class="logo-wrapper small">
-                                <img src="https://i.ibb.co/gMGWnB7S/Whats-App-Image-2025-12-01-at-19-58-07.jpg" alt="Dweli Loki Logo" class="partner-logo">
-                            </div>
-                            <span>Dweli Loki</span>
-                        </div>
-
-                        <!-- Partner 3 (Princee Hamz - No Image) -->
-                        <div class="partner-card">
-                            <div class="logo-wrapper small icon-only">
-                                <span class="ph-icon">PH</span>
-                            </div>
-                            <span>Princee Hamz Games</span>
-                        </div>
-
+                    <div class="btn-row">
+                        <button id="processBtn" class="primary-btn" aria-label="Bersihkan dan proteksi foto">
+                            <span class="btn-text"><i class="fa-solid fa-wand-magic-sparkles"></i> Bersihkan & Proteksi</span>
+                            <span class="btn-loader"></span>
+                        </button>
+                        <button id="resetBtn" class="secondary-btn" aria-label="Hapus foto dan mulai ulang">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
                 </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- How It Works -->
-    <section id="how-it-works" class="how-it-works">
-        <div class="container">
-            <div class="section-header">
-                <h2>Cara Kerja</h2>
-                <p>Tiga langkah sederhana untuk privasi total.</p>
-            </div>
-            <div class="steps-container">
-                <div class="step-item">
-                    <div class="step-num">01</div>
-                    <h3>Upload</h3>
-                    <p>Seret foto ke area upload.</p>
-                </div>
-                <div class="step-item">
-                    <div class="step-num">02</div>
-                    <h3>Proses</h3>
-                    <p>Sistem menghapus EXIF & memodifikasi pixel.</p>
-                </div>
-                <div class="step-item">
-                    <div class="step-num">03</div>
-                    <h3>Download</h3>
-                    <p>Dapatkan foto aman siap dibagikan.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="container">
-            <h2>Siap Melindungi Privasi Anda?</h2>
-            <p>Jangan biarkan jejak digital Anda terlacak. Gunakan ZeroTrace sekarang.</p>
-            <a href="./app/" class="btn-primary btn-large">
-                Gunakan ZeroTrace Gratis
-            </a>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <div class="container footer-content">
-            <div class="footer-brand">
-                <div class="footer-logo">
-                    <i class="fa-solid fa-shield-halved"></i> ZeroTrace
-                </div>
-                <p>Tools perlindungan privasi open-source untuk generasi digital.</p>
             </div>
 
-            <div class="footer-links-col">
-                <h4>Legal</h4>
-                <ul>
-                    <li><a href="https://www.freeprivacypolicy.com/live/e9b35dbe-79f8-46aa-8a34-3b10c2488879" target="_blank">Disclaimer</a></li>
-                    <li><a href="https://www.freeprivacypolicy.com/live/8b4ca688-807e-4e36-ac19-116265ecc339" target="_blank">Privacy Policy</a></li>
-                    <li><a href="https://www.freeprivacypolicy.com/live/b7205f43-1753-426a-a38c-601fdb72d12f" target="_blank">Terms & Conditions</a></li>
-                </ul>
-            </div>
+            <div id="resultSection" class="hidden">
+                <div class="glass-card result-card">
+                    <div class="success-icon">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <p class="success-msg">Foto berhasil diproteksi</p>
+                    <p class="success-sub">Semua metadata lokasi telah dihapus dan pixel noise diterapkan.</p>
 
-            <div class="footer-links-col">
-                <h4>Bantuan</h4>
-                <ul>
-                    <li><a href="https://zerotrace-web.vercel.app/Support" target="_blank">Support Center</a></li>
-                    <li><a href="./app/">Buka Aplikasi</a></li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <div class="container">
-                <div class="copyright">
-                    &copy; <span id="year"></span> ZeroTrace. All rights reserved.
-                </div>
-                <div class="socials">
-                    <!-- Social icons placeholder if needed -->
-                    <a href="https://zerotrace-web.vercel.app/Support" target="_blank" class="support-btn-small">
-                        <i class="fa-regular fa-life-ring"></i> Contact Support
+                    <div class="clean-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="statFields">0</div>
+                            <div class="stat-label">Field Dihapus</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statSize">0 KB</div>
+                            <div class="stat-label">Ukuran Bersih</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statSaved">0%</div>
+                            <div class="stat-label">Lebih Ringan</div>
+                        </div>
+                    </div>
+
+                    <div id="shieldDetails" style="margin: 16px 0; padding: 12px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: var(--radius-sm); text-align: left;">
+                        <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #60a5fa; margin: 0;">
+                            <i class="fa-solid fa-microchip"></i> <span id="gpsSpoofText">GPS Spoofing: Idle</span>
+                        </p>
+                    </div>
+
+                    <a id="downloadLink" href="#" download="protected-image.jpg" class="download-btn" aria-label="Download foto yang sudah diproteksi">
+                        <i class="fa-solid fa-download"></i>
+                        Download Foto Aman
                     </a>
                 </div>
             </div>
-        </div>
-    </footer>
 
-    <script>
-        // Update Copyright Year
-        document.getElementById('year').textContent = new Date().getFullYear();
+            <section class="how-section glass-card" style="margin-top: 24px;">
+                <h2 class="how-title">Cara Kerja</h2>
+                <div class="how-steps">
+                    <div class="how-step">
+                        <div class="step-num">1</div>
+                        <div class="step-content">
+                            <h4>Unggah Foto</h4>
+                            <p>Pilih foto yang ingin dilindungi. Semua proses berjalan aman.</p>
+                        </div>
+                    </div>
+                    <div class="how-step">
+                        <div class="step-num">2</div>
+                        <div class="step-content">
+                            <h4>Scan Metadata</h4>
+                            <p>Sistem mendeteksi data EXIF berbahaya yang tersimpan dalam foto.</p>
+                        </div>
+                    </div>
+                    <div class="how-step">
+                        <div class="step-num">3</div>
+                        <div class="step-content">
+                            <h4>Bersihkan Total</h4>
+                            <p>Metadata GPS dihapus, pixel noise diterapkan. Foto aman untuk dibagikan.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
 
-        // Simple Particle Background Script (Reused logic for consistency)
-        (function() {
-            var canvas = document.getElementById('bgCanvas');
-            var ctx = canvas.getContext('2d');
-            var width, height, particles;
+        <footer>
+            <div class="footer-line" aria-hidden="true"></div>
+            <p><span>Aman</span> untuk manusia, membingungkan bagi AI.</p>
+        </footer>
+    </div>
 
-            function resize() {
-                width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
-            }
-
-            function createParticles() {
-                particles = [];
-                var count = Math.floor((width * height) / 15000);
-                for (var i = 0; i < count; i++) {
-                    particles.push({
-                        x: Math.random() * width,
-                        y: Math.random() * height,
-                        vx: (Math.random() - 0.5) * 0.5,
-                        vy: (Math.random() - 0.5) * 0.5,
-                        size: Math.random() * 2 + 1,
-                        color: Math.random() > 0.5 ? 'rgba(14, 165, 233, ' : 'rgba(56, 189, 248, '
-                    });
-                }
-            }
-
-            function draw() {
-                ctx.clearRect(0, 0, width, height);
-                particles.forEach(function(p) {
-                    p.x += p.vx;
-                    p.y += p.vy;
-
-                    if (p.x < 0) p.x = width;
-                    if (p.x > width) p.x = 0;
-                    if (p.y < 0) p.y = height;
-                    if (p.y > height) p.y = 0;
-
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fillStyle = p.color + (Math.random() * 0.3 + 0.1) + ')';
-                    ctx.fill();
-                });
-                requestAnimationFrame(draw);
-            }
-
-            window.addEventListener('resize', function() { resize(); createParticles(); });
-            resize();
-            createParticles();
-            draw();
-        })();
-    </script>
+    <script src="src/main.js"></script>
 </body>
 </html>
