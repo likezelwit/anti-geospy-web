@@ -6,24 +6,20 @@
     <title>Anti-GeoSpy | Invisible Shield</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <!-- Link ke CSS Eksternal agar rapi -->
     <link rel="stylesheet" href="src/style.css">
 </head>
 <body>
 
-    <!-- Background layers -->
     <canvas id="bgCanvas" aria-hidden="true"></canvas>
     <div class="bg-pattern" aria-hidden="true"></div>
     <div class="orb orb-1" aria-hidden="true"></div>
     <div class="orb orb-2" aria-hidden="true"></div>
     <div class="orb orb-3" aria-hidden="true"></div>
 
-    <!-- Toast -->
     <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
     <div class="container">
 
-        <!-- Header -->
         <header>
             <div class="shield-icon" aria-hidden="true">
                 <i class="fa-solid fa-shield-halved"></i>
@@ -32,9 +28,7 @@
             <p>Lindungi privasi lokasi fotomu dari pelacakan AI geolokasi.</p>
         </header>
 
-        <!-- Main -->
         <main>
-            <!-- Upload Card -->
             <div class="upload-section glass-card">
                 <div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="Upload gambar untuk diproteksi">
                     <div class="upload-icon">
@@ -55,7 +49,6 @@
                 </div>
             </div>
 
-            <!-- Preview -->
             <div id="previewContainer" class="hidden">
                 <div class="glass-card">
                     <div class="preview-label">
@@ -88,7 +81,6 @@
                 </div>
             </div>
 
-            <!-- Result -->
             <div id="resultSection" class="hidden">
                 <div class="glass-card result-card">
                     <div class="success-icon">
@@ -112,6 +104,12 @@
                         </div>
                     </div>
 
+                    <div id="shieldDetails" style="margin: 16px 0; padding: 12px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: var(--radius-sm); text-align: left;">
+                        <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #60a5fa; margin: 0;">
+                            <i class="fa-solid fa-microchip"></i> <span id="gpsSpoofText">GPS Spoofing: Idle</span>
+                        </p>
+                    </div>
+
                     <a id="downloadLink" href="#" download="protected-image.jpg" class="download-btn" aria-label="Download foto yang sudah diproteksi">
                         <i class="fa-solid fa-download"></i>
                         Download Foto Aman
@@ -119,7 +117,6 @@
                 </div>
             </div>
 
-            <!-- How It Works -->
             <section class="how-section glass-card" style="margin-top: 24px;">
                 <h2 class="how-title">Cara Kerja</h2>
                 <div class="how-steps">
@@ -148,14 +145,12 @@
             </section>
         </main>
 
-        <!-- Footer -->
         <footer>
             <div class="footer-line" aria-hidden="true"></div>
             <p><span>Aman</span> untuk manusia, membingungkan bagi AI.</p>
         </footer>
     </div>
 
-    <!-- Script Utama -->
     <script src="src/main.js"></script>
 </body>
 </html>
