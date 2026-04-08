@@ -3,10 +3,6 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/index.py"
-    },
-    {
-      "source": "/shield",
-      "destination": "/app/index.html"
     }
   ]
 }
